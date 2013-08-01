@@ -199,14 +199,16 @@ function calculate(){
 	projection.from=steer.from.copy();
 	projection.to=projection.from.add(projection.velocity);
 	*/
+	
 	//curr投在steer上
 	var dot=steer.velocity.getNormalized().dot(curr.to.scale(-1));	
 	projection.velocity=steer.velocity.getNormalized().scale(dot);
 	projection.from=steer.from.copy();
 	projection.to=projection.from.add(projection.velocity);
 	
-	next.from=curr.from.copy();
-	next.velocity=curr.to.add(steer.velocity).limit(MAX_FORCE);
+	
+	next.from=curr.to.copy();
+	next.velocity=curr.to.add(projection.velocity).limit(MAX_FORCE);
 	next.to=next.from.add(next.velocity);
 }
 
