@@ -1,0 +1,75 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--><html class="no-js"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title></title>
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width">
+<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+<!-- build:css({.tmp,app}) styles/main.css -->
+<link rel="stylesheet" href="styles/main.css">
+<!-- endbuild -->
+<!-- build:js scripts/vendor/modernizr.js -->
+<script src="bower_components/modernizr/modernizr.js"></script>
+<!-- endbuild -->
+</head>
+<body>
+<div class="container">
+	<div class="ui">
+		status:<span class="status">zombie</span><br/>
+		<button class="btn-zombie">Zombie</button>
+		<button class="btn-rand-zombie">Rand-Zombie</button>
+		<button class="btn-survivor">Survivor</button>
+		<button class="btn-obstacle">obstacle</button>
+	</div>
+	<canvas id="canvas" width="600" height="400"></canvas>
+</div>
+
+
+<!-- build:js scripts/main.js -->
+<script data-main="scripts/main" src="bower_components/requirejs/require.js"></script>
+<script>
+require(['main','zombie'],function(main,Zombie){
+	require(['toxi'],function(){
+		'use strict';
+		console.log('obstacle + run away');
+
+		$('#canvas').bind('contextmenu', function(e){
+	    return false;
+		});
+		
+		var stage=new createjs.Stage('canvas');	
+		var stageWidth=stage.canvas.clientWidth;
+		var stageHeight=stage.canvas.clientHeight;
+		
+		console.dir(Zombie);
+		var z1=new Zombie(0);
+		z1.name="aa";
+		z1.sex="boy";
+		var z2=new Zombie(3);		
+		z2.name="bb";
+		z2.sex="girl";	
+		z1.foo();
+		z2.foo();
+		z1.bar();
+		z2.bar();	
+
+		//console.log(z1.name+","+z2.name);
+		
+		createjs.Ticker.useRAF=true;
+		createjs.Ticker.setFPS(30);
+		
+		createjs.Ticker.addEventListener('tick',onTick);
+		function onTick(){
+		  stage.update();  
+		};
+	});
+});
+</script>
+<!-- endbuild -->
+</body>
+</html>

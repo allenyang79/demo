@@ -1,0 +1,302 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--><html class="no-js"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title></title>
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width">
+<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+<!-- build:css({.tmp,app}) styles/main.css -->
+<link rel="stylesheet" href="styles/main.css">
+<!-- endbuild -->
+<!-- build:js scripts/vendor/modernizr.js -->
+<script src="bower_components/modernizr/modernizr.js"></script>
+<!-- endbuild -->
+</head>
+<body>
+<div class="container">
+	<div class="ui">
+		status:<span class="status">zombie</span><br/>
+		<button class="btn-zombie">Zombie</button>
+		<button class="btn-rand-zombie">Rand-Zombie</button>
+		<button class="btn-survivor">Survivor</button>	
+	</div>
+	<canvas id="canvas" width="600" height="400"></canvas>
+</div>
+
+
+<!-- build:js scripts/main.js -->
+<script data-main="scripts/main" src="bower_components/requirejs/require.js"></script>
+<script>
+require(['main'],function(){
+	require(['toxi'],function(){
+		'use strict';
+		console.log('run away');
+		
+		/*
+		var v1=new toxi.geom.Vec2D(2,2);
+		//v1=v1.getNormalized();
+		//v1=v1.getNormalizedTo(10);//長度10
+		console.log(v1.x+","+v1.y);
+		
+		return;
+
+		/*
+		var v1=new toxi.geom.Vec2D(330,130);
+		v1=v1.constrain(new toxi.geom.Vec2D(-50,-50),new toxi.geom.Vec2D(50,50));
+		console.dir(v1);
+		*/
+
+		
+		$('#canvas').bind('contextmenu', function(e){
+	    return false;
+		});
+		var SeekArrow=_.last(arguments);
+		
+		var stage=new createjs.Stage('canvas');	
+		var stageWidth=stage.canvas.clientWidth;
+		var stageHeight=stage.canvas.clientHeight;
+		
+		var zombieCollection=[];
+		var survivorCollection=[];
+
+		createjs.Ticker.useRAF=true;
+		createjs.Ticker.setFPS(60);
+		
+		createjs.Ticker.addEventListener('tick',onTick);
+		$(document).keyup(function(e){
+			if(e.keyCode==32){
+				onTick();
+			}
+		});
+		function onTick(){
+		  stage.update();  
+		  _.each(survivorCollection,function(survivor){
+		  	survivor.tick();
+		  });  
+		};
+		
+		stage.addEventListener('stagemousedown',function(){
+			if(status=='zombie'){
+				var zombie=new createjs.Shape();
+				zombie.graphics
+			    .beginFill(createjs.Graphics.getRGB(0x00ff00,0.5))
+			    .drawCircle(0,0,5);
+				zombie.x=stage.mouseX;
+				zombie.y=stage.mouseY;
+				zombieCollection.push(zombie);
+				
+				stage.addChild(zombie);
+			}else if(status=='survivor'){
+				var survivor=new RunAwayArrow();
+				console.dir(survivor);
+				survivor.x=stage.mouseX;
+				survivor.y=stage.mouseY;
+				survivorCollection.push(survivor);
+				
+				stage.addChild(survivor);
+			}
+			
+			onTick();
+		},this);
+		
+		//put sp in here
+
+		var RunAwayArrow=(function(){
+			var MAX_STEER_FORCE=30;//最大操作力
+			var MAX_FORCE=30;//最大執行力
+			var EFFECT_DISTANCE=50;//有視野效範
+			
+			
+						
+			var Arrow=function(){
+				createjs.Container.apply(this);
+				
+				this.currVel=new toxi.geom.Vec2D(0,0);
+				this.desireVel=new toxi.geom.Vec2D(0,0);
+				this.steerVel=new toxi.geom.Vec2D(0,0);
+			
+				console.log("[RunAwayArrow]init");
+				
+				this.velSp=new createjs.Shape();
+				
+				this.effectCircle=new createjs.Shape();
+				this.effectCircle.graphics
+					.beginStroke(createjs.Graphics.getRGB(0x000000,0.2))
+					.drawCircle(0,0,EFFECT_DISTANCE)
+					.endStroke();
+					
+				this.arrowBody=new createjs.Shape();
+		    this.arrowBody.graphics
+			    .beginFill(createjs.Graphics.getRGB(0x0000ff,0.5))
+			    .moveTo(8,0)
+			    .lineTo(-15,10)
+			    .lineTo(-10,0)
+			    .lineTo(-15,-10)
+			    .lineTo(8,0)
+			    .endStroke();
+				
+				this.addChild(this.velSp);	
+				this.addChild(this.effectCircle);
+				this.addChild(this.arrowBody);
+				
+				//==method================================================================================================
+				this.getPositionVec2D=function(){
+					new toxi.geom.Vec2D(this.x,this.y);
+				}
+				//取得zombie list
+				this.getZombieList=function(){
+					return zombieCollection;
+				}
+				//觀查
+				this.calculateDesireVal=function(){
+					var self=this;
+					var zList=this.getZombieList();	
+					var total=0;
+					
+					self.desireVel=new toxi.geom.Vec2D(0,0);				
+					_.each(zList,function(zombie){
+						//fix:越近的越強烈
+						var d=new toxi.geom.Vec2D(zombie.x-self.x,zombie.y-self.y);
+						var distance=d.magnitude();
+						if(distance>EFFECT_DISTANCE){
+							return;
+						}
+						else{
+							total++;
+							d.scaleSelf(-1);
+							d=d.getNormalizedTo(EFFECT_DISTANCE).subSelf(d);
+							self.desireVel.addSelf(d);
+						}
+					});
+					
+					if(total>0){
+						self.desireVel.scaleSelf(1/total);
+						self.desireVel.getNormalizedTo(MAX_FORCE);
+						//console.log(self.desireVel.x+","+self.desireVel.y)
+						//self.desireVel=self.desireVel.normalize().scaleSelf(EFFECT_DISTANCE);
+					}
+				}
+				//操作
+				this.calculateSteerVal=function(){
+					var sefl=this;
+					this.steerVel=sefl.desireVel.sub(sefl.currVel);//.getNormalizedTo(EFFECT_DISTANCE);
+					//this.currVel.sub(self.desireVel.getNormalizedTo(EFFECT_DISTANCE));
+				}
+				//整合
+				this.calculateCurrVal=function(f){
+					this.currVel.addSelf(this.steerVel.scale(0.2));
+					this.currVel=this.currVel.limit(MAX_FORCE).normalize();
+					this.currVel=this.currVel.normalize().scaleSelf(MAX_FORCE);
+					//this.currVel.scaleSelf(MAX_FORCE);	
+					/*
+					console.log("========");
+					console.log("d:"+this.desireVel.x+","+this.desireVel.y);
+					console.log("s:"+this.steerVel.x+","+this.steerVel.y);
+					console.log("c:"+this.currVel.x+","+this.currVel.y);
+					console.log("---------");
+					console.dir(this.currVel);
+					console.log("========");
+					*/
+				}
+				this.run=function(){
+					this.x+=this.currVel.x*0.05;
+					this.y+=this.currVel.y*0.05;
+					
+			    var degree=this.currVel.copy().toPolar().y*180/Math.PI;
+	        this.arrowBody.rotation=degree;
+
+        	var stage=this.getStage();	        
+	        if(stage){
+						var stageWidth=stage.canvas.clientWidth;
+						var stageHeight=stage.canvas.clientHeight;
+						if(this.x>stageWidth)
+							this.x=0;
+						else if(this.x<0)
+							this.x=stageWidth;
+							
+						if(this.y>stageHeight)
+							this.y=0;
+						else if(this.y<0)
+							this.y=stageHeight;
+	        }
+				}
+				//==繪製力線圖================================================================================================
+				this.drawVel=function(){
+					//console.log("[Arrow]drawVel");
+	
+					 //drawing
+					this.velSp.graphics
+						.clear()
+	
+					  .setStrokeStyle(3,'rect')
+					  .beginStroke(createjs.Graphics.getRGB(0x000000,0.5))
+					  .moveTo(0,0)
+					  .lineTo(this.desireVel.x,this.desireVel.y)
+					  .endStroke()
+					  //===================
+					  .setStrokeStyle(2,'rect')
+					  .beginStroke(createjs.Graphics.getRGB(0x0000ff,0.5))
+					  .moveTo(0,0)
+					  .lineTo(this.steerVel.x,this.steerVel.y)
+					  .endStroke()
+					  //===================
+					  .setStrokeStyle(1,'rect')
+					  .beginStroke(createjs.Graphics.getRGB(0x00ff00,0.5))
+					  .moveTo(0,0)
+					  .lineTo(this.currVel.x,this.currVel.y)
+					  .endStroke();
+				}
+	
+				this.tick=function(){
+					this.calculateDesireVal();
+					this.calculateSteerVal();
+					this.calculateCurrVal();
+					this.run();
+					
+					this.drawVel();
+				}
+			}
+			Arrow.prototype=new createjs.Container;
+			return Arrow;
+		}());
+		//RunAwayArrow end 
+		
+		var status='zombie';
+		$('.btn-zombie').click(function(e){
+			status='zombie';
+			$('.status','.ui').text(status);
+		});
+		$('.btn-survivor').click(function(e){
+			status='survivor';
+			$('.status','.ui').text(status);
+		});
+		$('.btn-rand-zombie').click(function(e){
+			for(var i=0;i<100;i++){
+			
+				var zombie=new createjs.Shape();
+				zombie.graphics
+			    .beginFill(createjs.Graphics.getRGB(0x00ff00,0.5))
+			    .drawCircle(0,0,5);
+			  
+			  
+			  //var r=new toxi.geom.Vec2D(0,0);
+				zombie.x=Math.random()*stage.canvas.clientWidth;
+				zombie.y=Math.random()*stage.canvas.clientWidth;
+				
+				zombieCollection.push(zombie);
+				
+				stage.addChild(zombie);
+			}
+		});
+
+	});
+});
+</script>
+<!-- endbuild -->
+</body>
+</html>

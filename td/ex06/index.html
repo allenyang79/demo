@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
+<head>
+<meta charset="utf-8">
+<link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel='stylesheet' type='text/css'/>
+<style>
+#canvas{
+width:400px;
+height:400px;
+border:1px dashed #ccc;
+}
+</style>
+
+</head>
+<body>
+<div id="stageMousePosition"></div>
+<div id="rowMousePosition"></div>
+<canvas id="canvas" width="400" height="400"></canvas>
+<script src="http://code.createjs.com/createjs-2013.05.14.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min.js"></script>
+<script type="text/javascript">
+var BallModel=Backbone.Model.extend({
+  default:{x:0,y:0,radius:10,color:"#ffff0000",speed:10,rotation:0},
+  initialize:function(){
+  	this.set('status','move');
+  },
+  update:function(){
+  	var status=this.get('status');
+  	if(status=='move')
+  		this.move();
+  	else if(status=='bomb'){
+  		this.bomb();
+  	}else if(status=='disappear')
+  	{
+  		this.disapper();
+  	}
+  	this.trigger('update');
+	},
+	move:function(){
+  	//三角
+  	var rotation=this.get('rotation');
+  	var speed=this.get('speed');
+  	//this.rotation=Math.atan2(stage.mouseY-this.y,stage.mouseX-this.x) * 180 / Math.PI;
+  	var vx=speed*Math.cos(rotation*(Math.PI / 180));
+  	var vy=speed*Math.sin(rotation*(Math.PI / 180));
+  	
+  	var dx=this.get('x')+vx;
+  	var dy=this.get('y')+vy
+  	var boundTest=true;
+  	var canvas=App.getInstance().stage.canvas;
+		boundTest=false
+		recheck=true;
+  	while(recheck){
+			boundTest=false;
+			if(dx>canvas.clientWidth){
+				dx=canvas.clientWidth-(dx-canvas.clientWidth);
+				boundTest=true;
+			}
+			if(dx<0)
+			{
+				dx=0-dx;
+				boundTest=true;
+			}
+			if(dy>canvas.clientHeight){
+				dy=canvas.clientHeight-(dy-canvas.clientHeight);
+				boundTest=true;
+			}
+			if(dy<0)
+			{
+				dy=0-dy;
+				boundTest=true;
+			}
+			if(boundTest==true){
+				var r1=90*Math.round(rotation/90);
+				rotation+=180;
+				//console.log("HIT");
+			}
+			if(boundTest==false)
+				recheck=false;
+  	}
+
+  	this.set('x',dx);
+  	this.set('y',dy);
+  	this.set('rotation',rotation);
+  },
+  bomb:function(){
+  	var r=this.get('radius');
+  	r++;
+  	if(r>50){
+  		this.set('status','disappear');
+  		return;
+  	}
+  	this.set('radius',r);
+		//console.dir(this.collection);
+  	this.collection.bombOne(this);
+  },
+  disapper:function(){
+		var r=this.get('radius');
+  	r--;
+  	if(r<=0)
+  		return;
+  	this.set('radius',r);
+  }
+});
+var BallCollection=Backbone.Collection.extend({
+  model:BallModel,
+  initialize:function(){
+  },
+  bombOne:function(bombBallModel){
+  	this.each(function(model){	
+
+  		if(model.get('status')=='move'){
+  	
+  		var r = bombBallModel.get('radius');
+  		var xx=bombBallModel.get('x')-model.get('x');
+  		var yy=bombBallModel.get('y')-model.get('y');
+			var d= Math.sqrt(xx*xx+yy*yy);
+
+				if(d<r){
+					console.log("BBBBoom!!");
+					model.set('status','bomb');					
+				}
+			}
+
+  	});
+  }
+});
+var BallView=function(options){
+	console.log("[BallView]init");
+  createjs.Container.apply(this);
+  this.model=options.model;
+  //this.model.view=this;
+
+
+  var circle = new createjs.Shape();
+	circle.graphics.beginFill(this.model.get('color')).drawCircle(0, 0, this.model.get('radius'));
+  this.addChild(circle);
+  
+  this.addEventListener('click',function(){
+    //console.log(this);
+    console.log("click");
+    this.model.set('status','bomb');
+  }.bind(this));
+  
+  //bind this on update
+  this.model.on('update',this.update,this);
+}
+
+BallView.prototype=new createjs.Container;
+BallView.prototype.update=function(){
+	//console.log("[BalLView]update");
+  this.x=this.model.get('x');
+  this.y=this.model.get('y');
+  this.rotation=this.model.get('rotation');
+  this.scaleY=this.scaleX=this.model.get('radius')/10;
+}
+BallView.prototype.hitTest=function(anotherBallView){
+	
+}
+var App=(function(){
+	var instance;
+	function init(){
+		var self=this;
+		
+		var stage = new createjs.Stage("canvas");
+		//=====================================================	  
+		var ballCollection=new BallCollection;
+	  ballCollection.on('add',function(ballModel){
+	    var ballView=new BallView({model:ballModel});
+			stage.addChild(ballView);
+	  });
+
+		for(var i=0;i<20;i++){
+			var color=createjs.Graphics.getRGB(Math.floor(Math.random()*255),
+				Math.floor(Math.random()*255),
+				Math.floor(Math.random()*255),
+				Math.random()*0.5+0.5);
+			//console.log(color);
+			ballCollection.add({
+				x:Math.random()*stage.canvas.clientWidth,
+				y:Math.random()*stage.canvas.clientHeight,
+				radius:10,
+				color:color,
+				rotation:Math.random()*360,
+				speed:2
+			});
+		}
+		/*
+		stage.addEventListener('stagemousedown',function(e){
+			var color=createjs.Graphics.getRGB(Math.floor(Math.random()*255),
+				Math.floor(Math.random()*255),
+				Math.floor(Math.random()*255),
+				Math.random()*0.5+0.5);
+			//console.log(color);
+			ballCollection.add({
+				x:stage.mouseX,
+				y:stage.mouseY,
+				radius:10,
+				color:color,
+				rotation:Math.random()*360,
+				speed:3
+			});
+			*/
+			//console.log(stage);	    
+
+	  //==============================================
+	  //init fps
+	  function tick(){
+	    //console.log("tick");
+	    ballCollection.each(function(ballModel){
+	    	/*
+				if(ballModel.view){
+					ballModel.view.update();
+				}
+				*/
+				ballModel.update();
+	    });
+	    stage.update();
+	  }
+	  //============================================	  
+	  return {
+	  	name:'App',
+	  	stage:stage,
+	  	ballCollection:ballCollection,
+	  	tick:tick,
+	  	play:function(){
+		  	createjs.Ticker.addEventListener("tick", this.tick.bind(this));
+			  createjs.Ticker.setFPS(30);
+	  	},
+	  	stop:function(){
+		  	createjs.Ticker.removeEventListener("tick", this.tick.bind(this));
+	  	}
+	  }
+  }
+  //end init 
+  //App  
+  return {
+  	getInstance:function(){
+	  	if(!instance)
+		  	instance=init();
+	  	return instance;  	
+  	}
+  }
+}());
+//actually, this is BallCollecitonView 
+$(function(){
+	var app=App.getInstance();
+	app.play();
+});
+</script>
+</body>
+</html>

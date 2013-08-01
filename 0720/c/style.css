@@ -1,0 +1,191 @@
+/* line 17, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+
+/* line 22, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+html {
+  line-height: 1;
+}
+
+/* line 24, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+ol, ul {
+  list-style: none;
+}
+
+/* line 26, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* line 28, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+caption, th, td {
+  text-align: left;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+/* line 30, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+q, blockquote {
+  quotes: none;
+}
+/* line 103, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+q:before, q:after, blockquote:before, blockquote:after {
+  content: "";
+  content: none;
+}
+
+/* line 32, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+a img {
+  border: none;
+}
+
+/* line 116, ../../../../../Applications/compass.app/Contents/Resources/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
+  display: block;
+}
+
+/* line 3, ../scss/style.scss */
+img {
+  border: 0;
+}
+
+/* line 6, ../scss/style.scss */
+#page {
+  position: relative;
+  width: 748px;
+  height: 490px;
+  display: block;
+  margin: 0 auto;
+  background: url(../images/bg.jpg) no-repeat center center;
+  	            /*
+  	@import "top/*.png";
+  	@include all-top-sprites;
+  */
+  /*
+  .top-1{
+  	background:url(../images/top-01.png) no-repeat center center;
+  	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='../images/top-01.png', sizingMethod='crop');
+  }
+  .top-2{
+  	background:url(../images/top-02.png) no-repeat center center;
+  	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='../images/top-02.png', sizingMethod='crop');
+  }
+  */
+}
+/* line 14, ../scss/style.scss */
+#page #topBox {
+  position: relative;
+  margin: 0 auto;
+  width: 411px;
+  height: 215px;
+  overflow: hidden;
+}
+/* line 21, ../scss/style.scss */
+#page .top {
+  margin: 0 auto;
+  width: 411px;
+  height: 2150px;
+  display: block;
+  background-image: url(../images/top.png);
+}
+/* line 45, ../scss/style.scss */
+#page #middle {
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+  height: 260px;
+  /*.paperBox*/
+  /*.toolbar*/
+}
+/* line 50, ../scss/style.scss */
+#page #middle .toolbar {
+  margin: 0 auto;
+  margin-top: 5px;
+  position: relative;
+  width: 480px;
+}
+/* line 55, ../scss/style.scss */
+#page #middle .toolbar .text {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
+  width: 363px;
+  height: 54px;
+  background: url(../images/text-01.png) no-repeat center center;
+}
+/* line 61, ../scss/style.scss */
+#page #middle .toolbar .btn {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
+  width: 100px;
+  height: 100px;
+  border: 0px;
+  cursor: pointer;
+  background: url(../images/btn-off.png) no-repeat center center;
+}
+/* line 69, ../scss/style.scss */
+#page #middle .toolbar .btn:hover, #page #middle .toolbar .btn:active, #page #middle .toolbar .btn-hover {
+  background: url(../images/btn-on.png) no-repeat center center;
+}
+/* line 75, ../scss/style.scss */
+#page #middle .paperBox {
+  position: absolute;
+  left: 208px;
+  top: 120px;
+  display: block;
+  width: 332px;
+  height: 128px;
+  overflow: hidden;
+}
+/* line 84, ../scss/style.scss */
+#page #middle .paperBox .paper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  margin: -128px auto;
+  background: url(../images/paper.jpg) no-repeat center center;
+  text-align: center;
+}
+/* line 91, ../scss/style.scss */
+#page #middle .paperBox .paper img {
+  border: 0px;
+  padding: 0px;
+  margin: 0px;
+}
+/* line 100, ../scss/style.scss */
+#page #middle #note {
+  background: url(../images/text-02.png) no-repeat center center;
+  display: none;
+  position: absolute;
+  width: 193px;
+  height: 43px;
+  left: 10px;
+  bottom: 10px;
+  cursor: pointer;
+}

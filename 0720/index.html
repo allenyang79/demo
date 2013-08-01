@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<script src="j/jquery.min.js"></script>
+<script src="j/jquery.preload.min.js"></script>
+<link href="c/style.css" media="screen, projection" rel="stylesheet" type="text/css" />
+<!--[if IE]>  
+<style type="text/css">
+.top,
+.toolbar .text,
+.toolbar .btn,
+#note
+{
+	behavior:url(c/iepngfix.htc);
+}
+</style>
+<![endif]--> 
+<script>
+$(function()
+{  
+  $.preload(
+  	'images/N-00.jpg',
+  	'images/N-01.jpg',
+  	'images/N-02.jpg',
+  	'images/N-03.jpg',
+  	'images/N-04.jpg',
+  	'images/N-05.jpg',
+  	'images/N-06.jpg',
+  	'images/N-07.jpg',
+  	'images/N-08.jpg',
+  	'images/N-09.jpg'
+  );	
+  
+	var timer=0;
+	loop();
+	function loop()
+	{
+		timer++;
+		timer=timer%10;
+		var y=timer*-215;
+		$(".top").css('margin-top',y+'px');
+		setTimeout(loop, 100);
+	}
+	$(".btn").click(function()
+	{
+		var no=Math.floor((Math.random()*10000));
+		showPaper(no);
+	}).hover(function()
+	{
+		$(this).addClass('btn-hover');
+	},function()
+	{
+		$(this).removeClass('btn-hover');
+	});
+});
+function showPaper(no)
+{
+	var str=no+"";
+	$(".paper").html('');
+	var html='';
+	for(var i=0;i<str.length;i++)
+	{
+		var c=str.charAt(i);
+		html+="<img src=\"images/N-0"+c+".jpg\"/>";
+
+	};
+	for(var j=0;j<(4-i);j++)
+	{
+		html='<img src="images/N-00.jpg"/>'+html;
+	}
+	
+	$(".paper").html(html);
+	$(".toolbar").html('');
+	$(".paper").css('margin-top','-128px');
+	$(".paper").animate({'margin-top':'0px'},1000);
+	$("#note").show();
+}
+
+</script>
+<body>
+<div id="page">
+	<div id="topBox">
+		<div class="top"></div>
+	</div>
+	<div id="middle">
+		<div class="toolbar">
+			<div class="text png"></div>
+			<input type="button" class="btn png" value=""/>
+		</div>
+		<div class="paperBox">
+			<div class="paper"></div>
+		</div>
+		<a id="note" class="png" href="http://www.tcb-life.com.tw/e_news.php?id=303" target="_blank"></a>
+	</div>
+</div>
+</body>
+</html>

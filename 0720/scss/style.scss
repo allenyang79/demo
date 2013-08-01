@@ -1,0 +1,111 @@
+@import "compass";
+@import "compass/reset";
+img{
+	border:0;
+}
+#page{
+	position:relative;
+	width:748px;
+	height:490px;
+	display:block;
+	margin:0 auto;
+	background:url(../images/bg.jpg) no-repeat center center;
+	
+	#topBox{
+		position:relative;
+		margin:0 auto;
+		width:411px;
+		height:215px;			
+		overflow:hidden;
+	}
+	.top{
+		margin:0 auto;
+		width:411px;
+		height:2150px;
+		display:block;
+		background-image:url(../images/top.png);
+	}
+/*
+	@import "top/*.png";
+	@include all-top-sprites;
+*/
+	/*
+	.top-1{
+		background:url(../images/top-01.png) no-repeat center center;
+		filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='../images/top-01.png', sizingMethod='crop');
+	}
+	.top-2{
+		background:url(../images/top-02.png) no-repeat center center;
+		filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='../images/top-02.png', sizingMethod='crop');
+	}
+	*/
+	
+
+
+	#middle{		
+		position:relative;
+		margin:0 auto;
+		width:100%;
+		height:260px;
+		.toolbar{
+			margin:0 auto;
+			margin-top:5px;
+			position: relative;
+			width:480px;
+			.text{
+				@include inline-block;
+				width:363px;
+				height:54px;
+				background:url(../images/text-01.png) no-repeat center center;				
+			}
+			.btn{
+				@include inline-block;
+				width:100px;
+				height:100px;
+				border:0px;
+				cursor:pointer;
+				background:url(../images/btn-off.png) no-repeat center center;
+			}
+			.btn:hover,.btn:active,.btn-hover{
+					background:url(../images/btn-on.png) no-repeat center center;					
+			}	
+			
+		}
+		.paperBox
+		{
+			position:absolute;
+			left:208px;
+			top:120px;
+			display:block;
+			width:332px;
+			height:128px;
+			overflow:hidden;
+			.paper
+			{
+				width:100%;
+				height:100%;
+				position: relative;
+				margin:-128px auto;
+				background:url(../images/paper.jpg) no-repeat center center;					
+				text-align: center;
+				img{
+					border:0px;
+					padding:0px;
+					margin:0px;
+				}
+			}
+		}
+		/*.paperBox*/
+		/*.toolbar*/
+		#note{
+			background:url(../images/text-02.png) no-repeat center center;
+			display:none;
+			position: absolute;
+			width:193px;
+			height:43px;
+			left:10px;
+			bottom:10px;
+			cursor: pointer;
+		}
+	}
+}
