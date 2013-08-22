@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
+<head>
+<meta charset="utf-8">
+<style>
+.axis path,.axis line{
+	fill:none;
+	stroke:#333;
+}
+.axis text{
+	fill:#999;
+}
+.zombie .body{
+	fill:rgba(0,128,0,0.5);
+}
+.survivor .body{
+	fill:rgba(0,0,255,0.5);
+}
+.unit .sight{
+	fill:none;
+	stroke:rgba(0,0,0,0.1);
+}
+.unit .desire{
+	stroke:rgba(0,0,0,0.5);
+}
+.unit .steer{
+	stroke:rgba(0,0,128,0.5);
+}
+.unit .curr{
+	stroke:rgba(0,128,0,0.5);
+}
+
+
+</style>
+</head>
+<body>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.2.2/d3.v3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js"></script>
+<script src="toxiclibs.min.js"></script>
+<script>
+var w=400,h=400;
+var svg=d3.select('body')
+    .append('svg')
+    .attr('width',500)
+    .attr('height',500);
+
+var xScale=d3.scale.linear().domain([0,w]).range([0,h]);
+var xAxis=d3.svg.axis().scale(xScale).orient('top').ticks(8);
+var yScale=d3.scale.linear().domain([0,w]).range([0,h]);
+var yAxis=d3.svg.axis().scale(yScale).orient('left').ticks(8);
+
+var scene=svg.append('g').attr('transform','translate(35,20)');
+var axes=scene.append('g').attr('class','axes');
+
+axes.append('g').attr('class','axis xAxis').call(xAxis);
+axes.append('g').attr('class','axis yAxis').call(yAxis);
+
+var mainLayer=scene.append('g').attr('class','main');
+
+var SIGHT=50;
+var FORCE=50;
+
+
+var zombieData=[];
+var survivorData=[];
+
+initData();
+calculate();
+initDraw();
+redraw();
+
+function tick(){
+
+	calculate();	
+	redraw();
+	
+	_.each(zombieData,function(z){
+		z.position.addSelf(z.curr.scale(0.1));
+		
+		if(z.position.x>=w)
+			z.position.x=10;
+		else if(z.position.x<=0)
+			z.position.x=w-10;
+			
+		if(z.position.y>=h)
+			z.position.y=10;
+		else if(z.position.y<=0)
+			z.position.y=h-10;
+	});
+	
+	_.each(survivorData,function(s){
+		s.position.addSelf(s.curr.scale(0.1));
+		
+		if(s.position.x>w)
+			s.position.x=0;
+		else if(s.position.x<0)
+			s.position.x=w;
+			
+		if(s.position.y>h)
+			s.position.y=0;
+		else if(s.position.y<0)
+			s.position.y=h;
+	});
+	
+
+}
+setInterval(tick,100);
+
+console.dir(zombieData);
+console.dir(survivorData);
+
+function initData(){
+	for(var i=0;i<50;i++){
+		var z={};
+		z.position=new toxi.geom.Vec2D(0,0).jitter(w*0.5,h*0.5).addSelf(w*0.5,h*0.5);
+		z.desire=new toxi.geom.Vec2D(0,0);
+		z.steer=new toxi.geom.Vec2D(0,0);
+		z.curr=toxi.geom.Vec2D.randomVector().scaleSelf(FORCE);
+		z.status='watch';
+		
+		zombieData.push(z);
+	}
+	
+	for(var i=0;i<25;i++){
+		var s={};
+		s.position=new toxi.geom.Vec2D(0,0).jitter(w*0.5,h*0.5).addSelf(w*0.5,h*0.5);
+		s.desire=new toxi.geom.Vec2D(0,0);
+		s.steer=new toxi.geom.Vec2D(0,0);
+		s.curr=new toxi.geom.Vec2D(0,0);		
+		s.status='flee';
+		survivorData.push(s);
+	}
+}
+function calculate(){
+	//追尋
+	_.each(zombieData,function(z){
+		//zombie是很笨的,一次只能追一個目標
+		if(z.target){	
+			var desire=z.target.position.sub(z.position);
+			var targetDistance=desire.magnitude();
+			if(targetDistance>SIGHT){
+				z.target=null;
+				return;
+			}
+		}
+		if(z.target==null || z.target==undefined){
+			//更新相標
+			//視野內,最近的目標
+			var target;
+			var targetDesire;
+			var targetDistance;
+
+			for(var i=0;i<survivorData.length;i++){
+				var s=survivorData[i]
+
+				var tmpTarget=s;
+				var tmpDesire=tmpTarget.position.sub(z.position);
+				var tmpTargetDistance=tmpDesire.magnitude();
+				//視野內
+				if(tmpTargetDistance<SIGHT){
+					if(target==null){
+						target=tmpTarget;
+						desire=tmpDesire
+						targetDistance=tmpTargetDistance;
+					}else if(tmpTargetDistance<targetDistance){
+						//切換目標
+						target=tmpTarget;
+						desire=tmpDesire;
+						targetDistance=tmpTargetDistance;					
+					}
+				}
+			}
+			z.target=target;
+		}
+		//==目標確認================================================================================================
+		
+		if(z.target){
+			//有目標
+			z.desire=z.target.position.sub(z.position);
+			z.desire.normalize().scaleSelf(FORCE);
+			
+			//curr投影到desire
+			var dot=z.desire.getNormalized().dot(z.curr);
+			var projection=desire.getNormalized().scale(dot);
+			if(dot==0){
+
+			}
+			else if(dot>0){//同一方向
+				z.steer=projection.copy();
+			}
+			else{
+				z.steer=projection.copy().scaleSelf(-1);
+			}
+			
+			if(z.curr.isZeroVector()){
+				//z.curr=toxi.geom.Vec2D.randomVector();
+				z.curr.addSelf(z.desire);	
+			}else{
+				z.curr.addSelf(z.steer);
+			}
+			z.curr.normalize().scaleSelf(FORCE);
+			
+		}else{
+			z.desire=new toxi.geom.Vec2D(0,0);
+			z.steer=new toxi.geom.Vec2D(0,0);
+			z.curr=new toxi.geom.Vec2D(0,0);
+		}
+	});
+	//==survivor================================================================================================
+	//逃離
+	_.each(survivorData,function(s){
+		var total=0;
+		var desire=new toxi.geom.Vec2D(0,0);
+		for(var i=0;i<zombieData.length;i++){
+			var z=zombieData[i]
+			var zDesire=z.position.sub(s.position);
+			var zDistance=zDesire.magnitude();
+			//視野內
+			
+			if(zDistance<=SIGHT){
+				//越近越強
+				var d=(SIGHT-zDistance)/zDistance;
+				desire.addSelf(zDesire.scale(d));
+				total++;
+			}
+		}
+		s.desire=desire;
+		if(total>0){
+			desire.scaleSelf(-1/total);
+
+			var dot=s.desire.getNormalized().dot(s.curr);
+			var projection=desire.getNormalized().scale(dot);
+			
+			if(dot>0)//同一方向
+				s.steer=projection.copy();
+			else
+				s.steer=projection.copy().scaleSelf(-1);
+			
+			if(s.curr.isZeroVector()){
+				s.curr.addSelf(s.desire);
+			}else{
+				s.curr.addSelf(s.steer);
+			}
+			
+			s.curr.normalize().scaleSelf(FORCE);
+		}else{
+			//範圍內沒有zombie
+			s.steer=new toxi.geom.Vec2D(0,0);
+			s.curr=new toxi.geom.Vec2D(0,0);
+		}
+	});
+}
+function initDraw(){
+	//zombie
+	mainLayer.selectAll('g.zombie')
+		.data(zombieData)
+		.enter()
+		.append('g')
+		.attr('class','unit zombie');
+	console.log("size:"+mainLayer.selectAll('g.zombie').size());
+	mainLayer.selectAll('g.zombie')		
+		.each(function(d,i){
+			d.el=d3.select(this);
+			initDrawEl.apply(this,[d,i]);
+		});
+	//survivor
+	mainLayer.selectAll('g.survivor')
+		.data(survivorData)
+		.enter()
+		.append('g')
+		.attr('class','unit survivor');	
+	mainLayer.selectAll('g.survivor')		
+		.each(function(d,i){
+			d.el=d3.select(this);
+			initDrawEl.apply(this,[d,i]);
+		});
+	//==initDraw================================================================================================
+	function initDrawEl(d,i){
+		var self=d3.select(this);
+		self.append('circle')
+			.attr('class','body')
+			.attr('cx',d.position.x)
+			.attr('cy',d.position.y)
+			.attr('r',5);
+			
+		self.append('circle')
+			.attr('class','sight')
+			.attr('cx',d.position.x)
+			.attr('cy',d.position.y)
+			.attr('r',SIGHT);
+			
+		
+		self.append('line')
+			.attr('class','curr')
+			.attr('x1',d.position.x)
+			.attr('y1',d.position.y)
+			.attr('x2',d.position.x+d.curr.x)
+			.attr('y2',d.position.y+d.curr.y);
+			
+		self.append('line')
+			.attr('class','desire')
+			.attr('x1',d.position.x)
+			.attr('y1',d.position.y)
+			.attr('x2',d.position.x+d.desire.x)
+			.attr('y2',d.position.y+d.desire.y);
+			
+		self.append('line')
+			.attr('class','steer')
+			.attr('x1',d.position.x)
+			.attr('y1',d.position.y)
+			.attr('x2',d.position.x+d.steer.x)
+			.attr('y2',d.position.y+d.steer.y);
+			
+	}
+}
+
+
+function redraw(){
+	//zombie
+	mainLayer.selectAll('g.zombie')		
+		.each(function(d,i){
+			d.el=d3.select(this);
+			drawEl.apply(this,[d,i]);
+		});
+	//survivor
+	mainLayer.selectAll('g.survivor')
+		.data(survivorData)
+		.enter()
+		.append('g')
+		.attr('class','unit survivor');	
+	mainLayer.selectAll('g.survivor')		
+		.each(function(d,i){
+			d.el=d3.select(this);
+			drawEl.apply(this,[d,i]);
+		});
+	//==initDraw================================================================================================
+	function drawEl(d,i){
+		var self=d.el;
+		self.select('circle.body')
+			.attr('cx',d.position.x)
+			.attr('cy',d.position.y)
+			.attr('r',5);
+			
+		self.select('circle.sight')
+			.attr('cx',d.position.x)
+			.attr('cy',d.position.y)
+			.attr('r',SIGHT);
+			
+		self.select('line.curr')
+			.attr('x1',d.position.x)
+			.attr('y1',d.position.y)
+			.attr('x2',d.position.x+d.curr.x)
+			.attr('y2',d.position.y+d.curr.y)
+			.attr('data-x',d.curr.x)
+			.attr('data-y',d.curr.y);
+
+		self.select('line.desire')
+			.attr('x1',d.position.x)
+			.attr('y1',d.position.y)
+			.attr('x2',d.position.x+d.desire.x)
+			.attr('y2',d.position.y+d.desire.y)
+			.attr('data-x',d.desire.x)
+			.attr('data-y',d.desire.y);
+			
+		self.select('line.steer')
+			.attr('x1',d.position.x)
+			.attr('y1',d.position.y)
+			.attr('x2',d.position.x+d.steer.x)
+			.attr('y2',d.position.y+d.steer.y)
+			.attr('data-x',d.steer.x)
+			.attr('data-y',d.steer.y);
+	}
+}
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
+<head>
+<meta charset="utf-8">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/crafty/0.5.3/crafty-min.js"></script>
+<script type="text/javascript"></script>
+<style>
+#cr-stage{
+	border:1px dashed #efefef;
+}
+</style>
+</head>
+<body>
+<h1>Hello World</h1>
+<script type="text/javascript">
+$(function(){
+  var WIDTH = 400,
+      HEIGHT = 400;
+  // Initialize Crafty
+  Crafty.init(WIDTH, HEIGHT);
+	Crafty.sprite(32, "crate.png", { crate: [0, 0]});
+  /*
+   * Create an entity with Crafty.e(..) that
+   *  - can be drawn (2D) on a HTML canvas (Canvas)
+   *  - has a background color (Color)
+   *  - can be moved with WASD or arrow keys (Fourway)
+   */
+  var pl = Crafty.e("2D, Canvas, Color, Fourway")
+              .attr({x: 10, y: 10, w: 32, h: 32}) // for Component 2D
+              .color("#FF0000") // for Component Color
+              .fourway(10); // for Component Fourway
+
+  // log the created entity to the JS console
+  console.log(pl);
+  
+	var box=Crafty.c("Box", {
+    init: function() {
+    	//套用組件
+			this.addComponent("2D, Canvas, Color, Fourway, Mouse, Tween, crate");       
+			// this.addComponent("2D, Canvas, Color");
+      
+      this.w = 32;    // width
+      this.h = 32;    // height
+      this.fourway(3);
+      
+      this.bind("EnterFrame", function(e) {
+        // update the state for each frame
+        if (this._alpha < 0.1) {
+	        this.destroy();
+				}
+      });
+      
+      this.bind("Click", function(e) {
+        console.log(arguments);
+        this.tween({alpha: 0.0}, 10);
+      });
+    },
+    makeBox: function(x, y, color) {
+        this.attr({x: x, y: y}).color(color);
+    }
+	});
+	
+	Crafty.c("DrawBox", {
+        ready: true,
+        init: function() {
+            this.addComponent("2D, Canvas, Fourway, Mouse, Tween");
+
+            this.w = 32;
+            this.h = 32;
+            this.fourway(10);
+
+            this.bind("Draw", function(obj) {
+                // Pass the Canvas context and the drawing region.
+                this._draw(obj.ctx, obj.pos);
+            });
+            this.bind("EnterFrame", function(e) {
+                if (this._alpha < 0.1) {
+                    this.destroy();
+                }
+            });
+            this.bind("Click", function(e) {
+                console.log(arguments);
+                this.tween({alpha: 0.0}, 50);
+            });
+        },
+        _draw: function(ctx, po) {
+            var pos = {_x: po._x + 1, _y: po._y + 1, _w: po._w - 2, _h: po._h -2};
+
+            ctx.fillStyle = this._color;
+            ctx.fillRect(pos._x, pos._y, pos._w, pos._h);
+
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "rgb(0,0,0)";
+            ctx.beginPath();
+            ctx.moveTo(pos._x, pos._y);
+            ctx.lineTo(pos._x + pos._w, pos._y);
+            ctx.lineTo(pos._x + pos._w, pos._y +  pos._h);
+            ctx.lineTo(pos._x, pos._y +  pos._h);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.moveTo(pos._x, pos._y);
+            ctx.lineTo(pos._x + pos._w, pos._y +  pos._h);
+            ctx.stroke();
+            ctx.moveTo(pos._x + pos._w, pos._y);
+            ctx.lineTo(pos._x, pos._y +  pos._h);
+            ctx.stroke();
+        },
+        makeBox: function(x, y, color) {
+            this.attr({x: x, y: y});
+            this._color = color;
+        }
+    });
+	
+	Crafty.e("Box").makeBox(160, 96, "#F00");
+	Crafty.e("DrawBox").makeBox(260, 96, "#F00");
+	
+});
+</script>
+</body>
+</html>
+

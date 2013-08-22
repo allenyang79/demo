@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" ng-app="drag">
+<head>
+<meta charset="utf-8">
+<title>My HTML File</title>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular-resource.js"></script>
+<style>
+.drag-box{
+	width:300px;
+	height:200px;
+	border:1px dashed #ccc;
+	margin:15px;
+	position: relative;
+}
+.drag{
+}
+</style>
+</head>
+<body>
+<div class="drag-box">
+	<span class="drag" draggable>drag me</span>
+</div>
+<script>
+angular.module('drag', []).
+  directive('draggable', function($document) {
+    return function(scope, element, attr) {
+      var startX = 0, startY = 0, x = 0, y = 0;
+      element.css({
+       position: 'relative',
+       border: '1px solid red',
+       backgroundColor: 'lightgrey',
+       cursor: 'pointer'
+      });
+      
+      element.bind('mousedown', function(event) {
+        // Prevent default dragging of selected content
+        event.preventDefault();
+        startX = event.screenX - x;
+        startY = event.screenY - y;
+        $document.bind('mousemove', mousemove);
+        $document.bind('mouseup', mouseup);
+      });
+ 
+      function mousemove(event) {
+        y = event.screenY - startY;
+        x = event.screenX - startX;
+        element.css({
+          top: y + 'px',
+          left:  x + 'px'
+        });
+      }
+ 
+      function mouseup() {
+        $document.unbind('mousemove', mousemove);
+        $document.unbind('mouseup', mouseup);
+      }
+    }
+  });
+</script>
+<!--unit test-->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jasmine/1.3.1/jasmine.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jasmine/1.3.1/jasmine-html.js"></script>
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jasmine/1.3.1/jasmine.css">
+</body>
+</html

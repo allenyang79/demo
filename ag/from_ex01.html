@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" ng-app="MyApp">
+<head>
+<meta charset="utf-8">
+<title>My HTML File</title>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular-resource.js"></script>
+<style>
+form .ng-valid{
+	background: #99ff99;
+}
+form .ng-invalid,form .ng-invalid-email{
+	background: #ff9999;
+}
+form .ng-pristine{
+	background: #9999ff;
+}
+form .ng-dirty{
+	background: #efefef;
+}
+</style>
+</head>
+
+
+<div ng-controller="Controller">
+		<form novalidate class="simple-form">
+      Name: <input type="text" ng-model="user.name" /><br />
+      E-mail: <input type="email" ng-model="user.email" /><br />
+      Gender: <input type="radio" ng-model="user.gender" value="male" />male
+      <input type="radio" ng-model="user.gender" value="female" />female<br />
+      <button ng-click="reset()">RESET</button>
+      <button ng-click="update(user)">SAVE</button>
+    </form>
+  </div>
+    
+<script>
+angular.module('MyApp', []).controller('Controller', function($scope) {
+ $scope.master= {};
+ 
+  $scope.update = function(user) {
+    $scope.master= angular.copy(user);
+  };
+ 
+  $scope.reset = function() {
+    $scope.user = angular.copy($scope.master);
+  };
+ 
+  $scope.reset();
+});
+</script>
+<!--unit test-->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jasmine/1.3.1/jasmine.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jasmine/1.3.1/jasmine-html.js"></script>
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jasmine/1.3.1/jasmine.css">
+</body>
+</html
